@@ -1,6 +1,6 @@
 import json
 from flask import Flask, abort, jsonify, request
-from flask_restx import Api  # type: ignore
+from flask_restx import Api
 
 PAGE_SIZE = 25
 
@@ -10,7 +10,8 @@ api = Api(app)
 with open('awards.json', encoding='utf-8') as f:
     awards = json.load(f)
 
-# TODO: Добавить код для чтения лауреатов из файла
+with open('laureats.json', encoding='utf-8') as f:
+    laureates = json.load(f)
 
 
 @app.route("/api/v1/awards/")
@@ -38,7 +39,26 @@ def award_object(pk):
         abort(404)
 
 
-# TODO: Добавить код для получения списка лауреатов
+@app.route("/api/v1/laureates/")
+def laureates_list():
+    try:
+        p = int(request.args.get('p', 0))
+        if p < 0:
+            raise ValueError
+    except ValueError:
+        return abort(400)
+    page = laureates[p * 25:(p + 1) * 25]
+    return jsonify({
+        'page': p,
+        'count_on_page': PAGE_SIZE,
+        'total': len(laureates),
+        'items': page,
+    })
 
 
-# TODO: Добавить код для получения лауреата по индексу
+@app.route("/api/v1/laureate/<int:pk>/")
+def laureate_object(pk):
+    if 0 <= pk < len(laureates):
+        return jsonify(laureates[pk])
+    else:
+        abort(404)
